@@ -9,70 +9,38 @@ import sunImage from './assets/Sun.jpg';
 
 function App() {
   const [weatherData, setWeatherData] = useState([]);
-  const [city, setCity] = useState("London")
+  const [city, setCity] = useState("Hyderabad")
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [units, setUnits] = useState("metric")
   const [toggle, setToggle] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [weatherImg, setWeatherImg] = useState(sunImage)
-  const [lat, setLat] = useState(null);
-  const [lng, setLng] = useState(null);
-  const [status, setStatus] = useState(null);
-  const [isUserAllowed, setisUserAllowed] = useState(false)
 
-  
 useEffect(() => {
     const fetchData = async () => {
       setWeatherData([])
       setIsLoading(true);
-      const latLonData = await getLatLon(city);
-      console.log(latLonData)
-      setLat(latLonData[0].lat)
-      setLng(latLonData[0].lon)
+      try {
+        const latLonData = await getLatLon(city);
+        const formattedWeatherData = await getFormattedWeatherData(latLonData[0].lat, latLonData[0].lon,units);
+        setWeatherData([formattedWeatherData])
+        setIsLoading(false);
+        console.log(weatherData)
+      } catch (err) {
+        setError(err.message);
+        setIsLoading(false);
+      }
+
     };
     fetchData();
+
   },[units,city]);
-
-  useEffect(()=>{
-    const fetchWeatherData = async () => {
-      try {
-        const formattedWeatherData = await getFormattedWeatherData(lat,lng,units);
-        setWeatherData([formattedWeatherData]);
-        setIsLoading(false);
-      } catch (error) {
-        console.log('Error fetching weather data: ', error);
-      }
-    };
-    fetchWeatherData();
-  }, [lat, lng, units,city]);
-
-  useEffect(() => {
-    const getLocation = () => {
-      if (!navigator.geolocation) {
-        setStatus('Geolocation is not supported by your browser');
-      } else {
-        setStatus('Locating...');
-        navigator.geolocation.getCurrentPosition((position) => {
-          setStatus(null);
-          setLat(position.coords.latitude);
-          setLng(position.coords.longitude);
-          setisUserAllowed(true)
-        }, () => {
-          setStatus('Unable to retrieve your location');
-        });
-      }
-    }
-    if(isUserAllowed){
-      getLocation();
-    }
-    getLocation();
-  }, [city]); 
-
  
 
   const handleClickUnits=(e)=>{
     e.preventDefault()
+    
     console.log(toggle)
     setToggle(!toggle)
     if(!toggle){
@@ -93,10 +61,10 @@ useEffect(() => {
   
 
   return (
-    <div className="bg-gradeint bg-cover bg-no-repeat bg-center text-white relative">
+    <div className="bg-gradeint bg-cover bg-no-repeat bg-center text-white">
       <div className="App flexbox">
         <div className="h-5/6 w-[95%] md:w-[70%] p-4  bg-cover bg-no-repeat bg-center rounded-lg " style={{ backgroundImage: `url(${weatherImg})` }}>
-        <p className="text-black text-center font-bold absolute bottom-0 right-0 ">Allow us to locate you and show the weather in your area.</p>
+        
           <div className="flexbox justify-between bg-overlay py-3 px-2 rounded-lg">
             <div className="flexbox relative ">
               <input type="text" placeholder="Search by City name"  onChange={(e) => setInputValue(e.target.value)} className="rounded-lg sm:px-3 py-1 bg-transparent border-2 border-white outline-none"/>
@@ -108,8 +76,8 @@ useEffect(() => {
           </div>
 
      
-      {isLoading && <div className="text-2xl text-red-400 font-semibold">Loading...</div>}
-      {error && <div>Error fetching data. {status}</div>}
+      {isLoading && <div className="loader">Loading...</div>}
+      {error && <div>Error fetching data.</div>}
 
       {weatherData && weatherData.map(
         (item) => (
