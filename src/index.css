@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .App{
+        @apply font-mono max-w-[1200px] h-screen  w-[90%] mx-auto ;
+    }
+    .flexbox{
+        @apply flex justify-center items-center
+    }
+    .wrapper{
+        @apply bg-overlay  p-4 rounded-lg flex flex-col items-center justify-center
+    }
+}
+
