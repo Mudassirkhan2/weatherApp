@@ -16,27 +16,53 @@ function App() {
   const [toggle, setToggle] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [weatherImg, setWeatherImg] = useState(sunImage)
+  const [lat, setLat] = useState(null);
+  const [lng, setLng] = useState(null);
+  const [isUserAllowed, setisUserAllowed] = useState(false)
 
+  
 useEffect(() => {
     const fetchData = async () => {
       setWeatherData([])
       setIsLoading(true);
-      try {
-        const latLonData = await getLatLon(city);
-        const formattedWeatherData = await getFormattedWeatherData(latLonData[0].lat, latLonData[0].lon,units);
-        setWeatherData([formattedWeatherData])
-        setIsLoading(false);
-        console.log(weatherData)
-      } catch (err) {
-        setError(err.message);
-        setIsLoading(false);
-      }
-
+      const latLonData = await getLatLon(city);
+      console.log(latLonData)
+      setLat(latLonData[0].lat)
+      setLng(latLonData[0].lon)
     };
     fetchData();
-
   },[units,city]);
- 
+
+  useEffect(()=>{
+    const fetchWeatherData = async () => {
+      try {
+        const formattedWeatherData = await getFormattedWeatherData(lat,lng,units);
+        setWeatherData([formattedWeatherData]);
+        setIsLoading(false);
+      } catch (error) {
+        console.log('Error fetching weather data: ', error);
+      }
+    };
+    fetchWeatherData();
+  }, [lat, lng, units,city]);
+
+  useEffect(() => {
+    const getLocation = () => {
+      if (!navigator.geolocation) {
+      } else {
+        navigator.geolocation.getCurrentPosition((position) => {
+          setLat(position.coords.latitude);
+          setLng(position.coords.longitude);
+          setisUserAllowed(true)
+        }, () => {
+        });
+      }
+    }
+    if(isUserAllowed){
+      getLocation();
+    }
+    getLocation();
+  }, [city]);
 
   const handleClickUnits=(e)=>{
     e.preventDefault()
@@ -61,19 +87,19 @@ useEffect(() => {
   
 
   return (
-    <div className="bg-gradeint bg-cover bg-no-repeat bg-center text-white">
-      <div className="App flexbox">
-        <div className="h-5/6 w-[95%] md:w-[70%] p-4  bg-cover bg-no-repeat bg-center rounded-lg " style={{ backgroundImage: `url(${weatherImg})` }}>
-        
-          <div className="flexbox justify-between bg-overlay py-3 px-2 rounded-lg">
-            <div className="flexbox relative ">
-              <input type="text" placeholder="Search by City name"  onChange={(e) => setInputValue(e.target.value)} className="rounded-lg sm:px-3 py-1 bg-transparent border-2 border-white outline-none"/>
-              <BiSearchAlt onClick={(e)=>handleSearch(e)}  className="absolute right-1 text-white w-5 h-5 cursor-pointer  "/>
-            </div>
-            <div className="px-2 py-1 sm:px-4 sm:py-2 rounded-lg font-bold text-xl bg-white text-black cursor-pointer">
-                <button onClick={(e)=>handleClickUnits(e)}>{toggle ?'°C':'°F'}</button>
-            </div>
+    <div className="bg-gradeint bg-cover bg-no-repeat bg-center text-white relative">
+    <div className="App flexbox">
+      <div className="h-5/6 w-[95%] md:w-[70%] p-4  bg-cover bg-no-repeat bg-center rounded-lg " style={{ backgroundImage: `url(${weatherImg})` }}>
+      <p className="text-black text-center font-bold absolute bottom-0 right-0 ">Allow us to locate you and show the weather in your area.</p>
+        <div className="flexbox justify-between bg-overlay py-3 px-2 rounded-lg">
+          <div className="flexbox relative ">
+            <input type="text" placeholder="Search by City name"  onChange={(e) => setInputValue(e.target.value)} className="rounded-lg sm:px-3 py-1 bg-transparent border-2 border-white outline-none"/>
+            <BiSearchAlt onClick={(e)=>handleSearch(e)}  className="absolute right-1 text-white w-5 h-5 cursor-pointer  "/>
           </div>
+          <div className="px-2 py-1 sm:px-4 sm:py-2 rounded-lg font-bold text-xl bg-white text-black cursor-pointer">
+              <button onClick={(e)=>handleClickUnits(e)}>{toggle ?'°C':'°F'}</button>
+          </div>
+        </div>
 
      
       {isLoading && <div className="loader">Loading...</div>}
