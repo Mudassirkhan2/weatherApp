@@ -46,7 +46,7 @@ useEffect(() => {
     fetchWeatherData();
   }, [lat, lng, units,city]);
 
-  useEffect(() => {
+useEffect(() => {
     const getLocation = () => {
       if (!navigator.geolocation) {
       } else {
